@@ -80,13 +80,13 @@ const addUser = function (user) {
   `;
 
   return pool.query(queryText, [user.name, user.email, user.password])
-  .then(result => {
-    return result.rows[0]
-  })
-  .catch(err => {
-    console.error(err.message)
-    throw err;
-  })
+    .then(result => {
+      return result.rows[0]
+    })
+    .catch(err => {
+      console.error(err.message)
+      throw err;
+    })
 };
 
 /// Reservations
@@ -97,7 +97,24 @@ const addUser = function (user) {
  * @return {Promise<[{}]>} A promise to the reservations.
  */
 const getAllReservations = function (guest_id, limit = 10) {
-  return getAllProperties(null, 2);
+  const queryText = `
+  SELECT reservations.*, properties.*
+  FROM reservations
+  JOIN properties ON reservations.property_id = properties.id
+  WHERE reservations.guest_id = $1
+  GROUP BY properties.id, reservations.id
+  ORDER BY reservations.start_date
+  LIMIT $2;
+  `
+
+  return pool.query(queryText, [guest_id, limit])
+    .then(result => {
+      return result.rows;
+    })
+    .catch(err => {
+      console.error(err.message);
+      throw err;
+    })
 };
 
 /// Properties
